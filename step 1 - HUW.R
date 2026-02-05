@@ -10,9 +10,7 @@ options(scipen = 999)
 
 ###############################################################
 setwd("D:/RIDWAN/9. RISK PROFILE")
-data_rp <- readRDS("data_rp_20260102.rds") %>% 
-  mutate(AS_OF_DATE = as.Date("2025-12-31"))
-
+data_rp <- readRDS("data_rp_20260130.rds")
 ########################################################
 
 # Function to calculate policy days in each calendar year with valuation date split
@@ -145,7 +143,7 @@ data_polis <- data_rp %>%
   ) %>%
   select(-INCLUDES_LEAP_DAY)
 
-#203188
+#205938
 nrow(data_polis)
 View(data_polis)
 
@@ -164,7 +162,7 @@ data_ovr.0 <- data_ovr %>%
                               "BlueBird Group", 
                               ACCOUNT_NAME)
   )%>%
-  convert(num(PREMIUM, DISC, GWP, COMM, RI_PREM, RI_COMM, GROSS_EP, COMM_EARNED, RI_EP,
+  hablar::convert(hablar::num(PREMIUM, DISC, GWP, COMM, RI_PREM, RI_COMM, GROSS_EP, COMM_EARNED, RI_EP,
               GROSS_CLAIM_TOTAL, RI_CLAIM_TOTAL, OVR_pct, OPEX_pct,OVR_IDR,OPEX_IDR, NEP, UW_YEAR))
 
 data_ovr.1 <- data_ovr.0 %>%
@@ -196,8 +194,8 @@ data_polis.1 <- data_polis %>%
 nrow(data_polis)
 nrow(data_polis.1)
 ##############################################################
-setwd("D:/RIDWAN/2.1 ANALISA PORTFOLIO All COB 5 UW Year Terakhir/2025/202512")
-data.digital <- read_excel("Polis Digital Produksi dan UPR - 20251231.xlsx")
+setwd("Z:/Actuary/Reserve/0. Produksi Polis Digital")
+data.digital <- read_excel("Polis Digital Produksi dan UPR - 20260131.xlsx")
 
 data.digital <- data.digital %>% 
   select(
@@ -240,7 +238,7 @@ polis_xol <- c("10.03.01.24.06.0.00460",
 ##############################################################
 cek_xol <- data_polis.1 %>%
   filter(POLICY_NO %in% polis_xol)%>%
-  group_by(POLICY_NO)%>%
+  group_by(POLICY_NO, INSURED_NAME)%>%
   summarise(
     GROSS_CLAIM = sum(GROSS_CLAIM, na.rm = TRUE),
     RI_CLAIM    = sum(RI_CLAIM, na.rm = TRUE),
@@ -280,7 +278,7 @@ data_polis.2 <- data_polis.1 %>%
   left_join(cek_xol , by= "POLICY_NO") %>%
   mutate(
     RI_COMM = case_when(
-      IS_FRONTING == "FRONTING" & COB %in% c("LB", "MS") ~ RI_comm_Ratio * RI_PREMIUM,
+      IS_FRONTING == "FRONTING" & COB %in% c("LB", "MS") & UW_YEAR <= 2025 ~ RI_comm_Ratio * RI_PREMIUM,
       TRUE ~ RI_COMM)
   )%>%
   mutate(
@@ -363,12 +361,17 @@ comma(sum(data_polis.3$HASIL_UW[data_polis.3$UW_YEAR == 2025]))
 comma(sum(data_polis.3$HASIL_UW[data_polis.3$UW_YEAR == 2025 & data_polis.3$IS_FRONTING == "NON_FRONTING"]))
 comma(sum(data_polis.3$HASIL_UW[data_polis.3$UW_YEAR == 2025 & data_polis.3$RECLASS_TOB == "PARTNERSHIP"], na.rm = TRUE))
 
+
+comma(sum(data_polis.3$HASIL_UW[data_polis.3$UW_YEAR == 2026]))
+comma(sum(data_polis.3$HASIL_UW[data_polis.3$UW_YEAR == 2026 & data_polis.3$IS_FRONTING == "NON_FRONTING"]))
+comma(sum(data_polis.3$HASIL_UW[data_polis.3$UW_YEAR == 2026 & data_polis.3$RECLASS_TOB == "PARTNERSHIP"], na.rm = TRUE))
+
 ###########################################################################
 
 file_xls <- paste0("Hasil UW 2022-2025 as at ",unique(data_polis.3$AS_OF_DATE),".xlsx")
 file_rds <- paste0("Hasil UW 2022-2025 as at ",unique(data_polis.3$AS_OF_DATE),".rds")
 
-setwd("D:/RIDWAN/2.1 ANALISA PORTFOLIO All COB 5 UW Year Terakhir/2025/202512")
+setwd("D:/RIDWAN/2.1 ANALISA PORTFOLIO All COB 5 UW Year Terakhir/2026/202601")
 write_xlsx(data_polis.3, file_xls)
 saveRDS(data_polis.3, file_rds)
 
